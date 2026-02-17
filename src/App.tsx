@@ -287,6 +287,303 @@ function InsuranceCalc() {
   );
 }
 
+// ① 등기부등본 읽는 법 가이드
+function RegistryGuide() {
+  const [open, setOpen] = useState(false);
+
+  const sections = [
+    {
+      title: '표제부 — 건물 기본 정보',
+      content: '건물의 소재지, 면적, 구조, 용도 등 기본 정보가 기재됩니다. 주소와 실제 물건이 일치하는지 확인하세요.',
+    },
+    {
+      title: '갑구 — 소유권 관련',
+      content: '소유자가 누구인지, 가압류·가처분·경매개시결정 등이 있는지 확인합니다.\n\n⚠️ 가압류가 있으면 집주인에게 채무가 있다는 뜻 → 위험\n⚠️ 경매개시결정이 있으면 이미 경매 진행 중 → 계약 금지',
+    },
+    {
+      title: '을구 — 근저당·전세권 등',
+      content: '근저당권 설정 금액을 확인하세요. 이 금액이 매매가의 60%를 넘으면 위험합니다.\n\n근저당 = 은행 대출 담보. 경매 시 은행이 먼저 가져갑니다.\n전세권 설정이 되어 있다면 선순위 세입자가 있다는 뜻입니다.',
+    },
+    {
+      title: '핵심 체크 포인트',
+      content: '✓ 소유자와 계약자가 동일인인지\n✓ 갑구에 가압류·경매 기록이 없는지\n✓ 을구 근저당 합계가 매매가의 60% 이하인지\n✓ 잔금 당일 등기부를 다시 한번 확인\n\n등기부는 인터넷등기소(iros.go.kr)에서 700원에 열람 가능합니다.',
+    },
+  ];
+
+  return (
+    <div style={{
+      background: C.bg,
+      margin: '12px 16px',
+      borderRadius: 12,
+      overflow: 'hidden',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>등기부등본 읽는 법</div>
+          <div style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>처음 보는 사람도 이해할 수 있게</div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <path d="M5 8L10 13L15 8" stroke={C.gray} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+      {open && (
+        <div style={{ padding: '0 20px 20px' }}>
+          {sections.map((s, i) => (
+            <div key={i} style={{
+              padding: '14px 16px',
+              background: C.grayLight,
+              borderRadius: 8,
+              marginBottom: i < sections.length - 1 ? 8 : 0,
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: C.text }}>{s.title}</div>
+              <div style={{ fontSize: 13, color: C.gray, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{s.content}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ② 계약일 기반 타임라인
+function ContractTimeline() {
+  const [contractDate, setContractDate] = useState('');
+
+  const addDays = (dateStr: string, days: number) => {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + days);
+    return d;
+  };
+
+  const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}(${['일','월','화','수','목','금','토'][d.getDay()]})`;
+
+  const steps = contractDate ? [
+    { offset: -14, label: '등기부등본 열람 + 시세 조사', phase: '계약 전' },
+    { offset: -7, label: '집 방문, 하자 확인, 주변 환경 체크', phase: '계약 전' },
+    { offset: -3, label: '임대인 납세증명서·확정일자현황 요청', phase: '계약 전' },
+    { offset: -1, label: '등기부등본 재확인 (권리변동 체크)', phase: '계약 전' },
+    { offset: 0, label: '계약 체결 — 특약 기재, 본인 계좌 확인', phase: '계약일' },
+    { offset: 0, label: '계약서 원본 + 보증금 영수증 수령', phase: '계약일' },
+    { offset: 1, label: '전입신고 + 확정일자 (대항력 확보)', phase: '입주 후' },
+    { offset: 1, label: '등기부등본 최종 확인', phase: '입주 후' },
+    { offset: 7, label: '전세보증보험 가입 (HUG/SGI)', phase: '입주 후' },
+  ] : [];
+
+  return (
+    <div style={{
+      background: C.bg,
+      margin: '12px 16px',
+      borderRadius: 12,
+      padding: '20px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    }}>
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>계약 타임라인</div>
+      <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>계약일을 입력하면 날짜별 할 일을 알려드려요</div>
+
+      <input
+        type="date"
+        value={contractDate}
+        onChange={e => setContractDate(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '12px 14px',
+          borderRadius: 8,
+          border: `1px solid ${C.border}`,
+          fontSize: 15,
+          fontFamily: FONT,
+          outline: 'none',
+          boxSizing: 'border-box',
+          background: C.bg,
+          color: C.text,
+          marginBottom: steps.length ? 16 : 0,
+        }}
+      />
+
+      {steps.length > 0 && (
+        <div style={{ position: 'relative', paddingLeft: 20 }}>
+          {/* Vertical line */}
+          <div style={{
+            position: 'absolute',
+            left: 7,
+            top: 8,
+            bottom: 8,
+            width: 2,
+            background: C.border,
+          }} />
+
+          {steps.map((step, i) => {
+            const d = addDays(contractDate, step.offset);
+            const isToday = step.offset === 0;
+            const isPast = step.offset < 0;
+            const dotColor = isToday ? C.primary : isPast ? C.gray : C.success;
+
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 14, position: 'relative' }}>
+                {/* Dot */}
+                <div style={{
+                  position: 'absolute',
+                  left: -16,
+                  top: 4,
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  background: dotColor,
+                  border: `2px solid ${C.bg}`,
+                  boxShadow: `0 0 0 2px ${dotColor}30`,
+                }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: dotColor }}>{fmt(d)}</span>
+                    <span style={{
+                      fontSize: 11,
+                      padding: '1px 6px',
+                      borderRadius: 4,
+                      background: isToday ? `${C.primary}15` : isPast ? C.grayLight : `${C.success}12`,
+                      color: isToday ? C.primary : isPast ? C.gray : C.success,
+                      fontWeight: 600,
+                    }}>
+                      {step.offset === 0 ? 'D-Day' : step.offset > 0 ? `D+${step.offset}` : `D${step.offset}`}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 14, color: C.text }}>{step.label}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ③ 임대인에게 요구할 서류 목록
+function LandlordDocs() {
+  const [open, setOpen] = useState(false);
+
+  const docs = [
+    {
+      name: '신분증 사본',
+      why: '등기부상 소유자와 동일인인지 확인',
+      must: true,
+    },
+    {
+      name: '등기권리증 (원본)',
+      why: '위조 계약 방지 — 원본 소지자가 진짜 소유자',
+      must: true,
+    },
+    {
+      name: '국세 납세증명서',
+      why: '세금 체납 시 보증금보다 국세가 우선 변제됨',
+      must: true,
+    },
+    {
+      name: '지방세 납세증명서',
+      why: '지방세 체납도 보증금에 영향',
+      must: true,
+    },
+    {
+      name: '확정일자 부여현황',
+      why: '선순위 임차인 보증금 총액 확인 → 깡통전세 판단',
+      must: true,
+    },
+    {
+      name: '건축물대장',
+      why: '불법건축물·위반건축물 여부 확인',
+      must: false,
+    },
+    {
+      name: '전입세대 열람내역',
+      why: '실제 거주 세입자 수 파악 (다가구주택 필수)',
+      must: false,
+    },
+  ];
+
+  return (
+    <div style={{
+      background: C.bg,
+      margin: '12px 16px',
+      borderRadius: 12,
+      overflow: 'hidden',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>임대인에게 요구할 서류</div>
+          <div style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>이 서류 안 보여주면 계약하지 마세요</div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <path d="M5 8L10 13L15 8" stroke={C.gray} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+      {open && (
+        <div style={{ padding: '0 20px 20px' }}>
+          <div style={{
+            padding: '10px 14px',
+            background: `${C.danger}08`,
+            borderRadius: 8,
+            border: `1px solid ${C.danger}20`,
+            fontSize: 13,
+            color: C.danger,
+            fontWeight: 600,
+            marginBottom: 12,
+            lineHeight: 1.5,
+          }}>
+            임대인이 서류 제출을 거부하면 그 자체가 위험 신호입니다. 계약을 재고하세요.
+          </div>
+          {docs.map((doc, i) => (
+            <div key={i} style={{
+              padding: '12px 14px',
+              background: C.grayLight,
+              borderRadius: 8,
+              marginBottom: i < docs.length - 1 ? 6 : 0,
+              display: 'flex',
+              gap: 12,
+              alignItems: 'flex-start',
+            }}>
+              <div style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: doc.must ? C.danger : C.gray,
+                background: doc.must ? `${C.danger}12` : C.grayLight,
+                border: doc.must ? `1px solid ${C.danger}30` : `1px solid ${C.border}`,
+                padding: '2px 6px',
+                borderRadius: 4,
+                flexShrink: 0,
+                marginTop: 2,
+              }}>
+                {doc.must ? '필수' : '권장'}
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 2 }}>{doc.name}</div>
+                <div style={{ fontSize: 12, color: C.gray, lineHeight: 1.4 }}>{doc.why}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -523,6 +820,15 @@ export default function App() {
       {/* 보증보험료 계산기 */}
       <InsuranceCalc />
 
+      {/* ① 등기부등본 읽는 법 가이드 */}
+      <RegistryGuide />
+
+      {/* ② 계약일 기반 타임라인 */}
+      <ContractTimeline />
+
+      {/* ③ 임대인에게 요구할 서류 목록 */}
+      <LandlordDocs />
+
       {/* 체크 결과 공유 */}
       {checked.size > 0 && (
         <div style={{
@@ -584,9 +890,11 @@ export default function App() {
           <span style={{ fontSize: 16, fontWeight: 700 }}>바로가기</span>
         </div>
         {[
-          { label: '등기부등본 열람', url: 'https://www.iros.go.kr', desc: '인터넷등기소에서 바로 발급' },
+          { label: '등기부등본 열람', url: 'https://www.iros.go.kr', desc: '인터넷등기소 — 700원/건' },
+          { label: '전입신고 (정부24)', url: 'https://www.gov.kr/mw/AA020InfoCappView.do?HighCtgCD=A09002&CappBizCD=13100000022', desc: '온라인 전입신고 바로가기' },
+          { label: '확정일자 신청', url: 'https://www.gov.kr/mw/AA020InfoCappView.do?HighCtgCD=A09002&CappBizCD=15000000137', desc: '정부24 온라인 신청' },
           { label: '공인중개사 조회', url: 'https://www.kar.or.kr', desc: '한국공인중개사협회' },
-          { label: '전세사기 피해 상담', url: 'tel:1644-7788', desc: 'HF 주택금융공사 전화 상담' },
+          { label: '전세사기 피해 상담', url: 'tel:1644-7788', desc: 'HF 주택금융공사 전화' },
         ].map((link, idx, arr) => (
           <a
             key={link.url}
