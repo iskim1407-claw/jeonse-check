@@ -244,7 +244,7 @@ function InsuranceCalc() {
 
       <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
         <a
-          href="https://www.khug.or.kr/hug/web/cont/cont/doContRentalList.do"
+          href="https://www.khug.or.kr/hug/web/ig/dr/igdr000002.jsp?tabMenu=Y"
           target="_blank"
           rel="noopener noreferrer"
           style={{
