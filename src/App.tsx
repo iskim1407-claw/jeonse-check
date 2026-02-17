@@ -244,7 +244,7 @@ function InsuranceCalc() {
 
       <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
         <a
-          href="https://www.khug.or.kr/hug/web/ig/dr/igdr000002.jsp?tabMenu=Y"
+          href="https://khig.khug.or.kr/"
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -263,7 +263,7 @@ function InsuranceCalc() {
           HUG 가입 신청
         </a>
         <a
-          href="https://www.sgi.co.kr/chc/chc_001700.do"
+          href="https://www.sgi.co.kr"
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -585,7 +585,7 @@ export default function App() {
         </div>
         {[
           { label: '등기부등본 열람', url: 'https://www.iros.go.kr', desc: '인터넷등기소에서 바로 발급' },
-          { label: '공인중개사 조회', url: 'https://www.nsdi.go.kr/lxportal/nsd/main/portal.do', desc: '자격 여부 즉시 확인' },
+          { label: '공인중개사 조회', url: 'https://www.kar.or.kr', desc: '한국공인중개사협회' },
           { label: '전세사기 피해 상담', url: 'tel:1644-7788', desc: 'HF 주택금융공사 전화 상담' },
         ].map((link, idx, arr) => (
           <a
