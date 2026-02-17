@@ -78,6 +78,215 @@ function getRiskLevel(checked: Set<string>) {
   return { label: '위험', color: C.danger, emoji: '' };
 }
 
+// 전세가율 계산기
+function DepositCalc() {
+  const [salePrice, setSalePrice] = useState('');
+  const [deposit, setDeposit] = useState('');
+
+  const sale = parseFloat(salePrice) || 0;
+  const dep = parseFloat(deposit) || 0;
+  const ratio = sale > 0 ? (dep / sale) * 100 : 0;
+
+  const getRatioRisk = (r: number) => {
+    if (r === 0) return { label: '입력 대기', color: C.gray, desc: '' };
+    if (r <= 60) return { label: '안전', color: C.success, desc: '전세가율이 낮아 비교적 안전합니다.' };
+    if (r <= 80) return { label: '주의', color: C.warning, desc: '전세가율이 높은 편입니다. 보증보험 가입을 권장합니다.' };
+    return { label: '위험', color: C.danger, desc: '깡통전세 위험이 매우 높습니다. 계약을 재고하세요.' };
+  };
+
+  const risk = getRatioRisk(ratio);
+
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: 8,
+    border: `1px solid ${C.border}`,
+    fontSize: 15,
+    fontFamily: FONT,
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    background: C.bg,
+    color: C.text,
+  };
+
+  return (
+    <div style={{
+      background: C.bg,
+      margin: '12px 16px',
+      borderRadius: 12,
+      padding: '20px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    }}>
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>전세가율 계산기</div>
+      <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>매매가 대비 전세가 비율로 깡통전세 위험을 확인하세요</div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+        <div>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 4, display: 'block' }}>매매가 (만원)</label>
+          <input
+            type="number"
+            placeholder="예: 30000"
+            value={salePrice}
+            onChange={e => setSalePrice(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+        <div>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 4, display: 'block' }}>전세 보증금 (만원)</label>
+          <input
+            type="number"
+            placeholder="예: 25000"
+            value={deposit}
+            onChange={e => setDeposit(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+      </div>
+
+      {sale > 0 && dep > 0 && (
+        <div style={{
+          padding: '14px 16px',
+          background: `${risk.color}10`,
+          borderRadius: 8,
+          border: `1px solid ${risk.color}30`,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>전세가율</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: risk.color }}>{ratio.toFixed(1)}%</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: C.gray }}>판정</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: risk.color }}>{risk.label}</span>
+          </div>
+          <div style={{ fontSize: 12, color: C.gray, lineHeight: 1.5 }}>{risk.desc}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 보증보험료 계산기
+function InsuranceCalc() {
+  const [deposit, setDeposit] = useState('');
+  const dep = parseFloat(deposit) || 0;
+
+  // HUG 전세보증금반환보증 기준 (연 0.128% ~ 0.154%, 평균 약 0.14%)
+  const annualRate = 0.0014;
+  const premium2yr = Math.round(dep * annualRate * 2);
+
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: 8,
+    border: `1px solid ${C.border}`,
+    fontSize: 15,
+    fontFamily: FONT,
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    background: C.bg,
+    color: C.text,
+  };
+
+  const fmt = (n: number) => n.toLocaleString('ko-KR');
+
+  return (
+    <div style={{
+      background: C.bg,
+      margin: '12px 16px',
+      borderRadius: 12,
+      padding: '20px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    }}>
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>보증보험료 계산기</div>
+      <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>HUG 전세보증금반환보증 예상 보험료를 계산합니다</div>
+
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 4, display: 'block' }}>전세 보증금 (만원)</label>
+        <input
+          type="number"
+          placeholder="예: 25000"
+          value={deposit}
+          onChange={e => setDeposit(e.target.value)}
+          style={inputStyle}
+        />
+      </div>
+
+      {dep > 0 && (
+        <div style={{
+          padding: '14px 16px',
+          background: `${C.primary}08`,
+          borderRadius: 8,
+          border: `1px solid ${C.primary}20`,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: C.gray }}>보증금</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{fmt(dep)}만원</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: C.gray }}>연간 보험료 (약 0.14%)</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{fmt(Math.round(dep * annualRate))}만원</span>
+          </div>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            paddingTop: 8,
+            borderTop: `1px solid ${C.border}`,
+          }}>
+            <span style={{ fontSize: 14, fontWeight: 700 }}>2년 예상 보험료</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: C.primary }}>{fmt(premium2yr)}만원</span>
+          </div>
+          <div style={{ fontSize: 11, color: C.gray, marginTop: 8, lineHeight: 1.4 }}>
+            * 실제 보험료는 주택 유형, 지역, 보증 기간에 따라 달라질 수 있습니다.
+            HUG(주택도시보증공사) 또는 SGI(서울보증보험)에서 정확한 견적을 확인하세요.
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+        <a
+          href="https://www.khug.or.kr/hug/web/cont/cont/doContRentalList.do"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            flex: 1,
+            display: 'block',
+            padding: '12px',
+            borderRadius: 8,
+            background: C.primary,
+            color: '#fff',
+            fontSize: 13,
+            fontWeight: 600,
+            textAlign: 'center',
+            textDecoration: 'none',
+          }}
+        >
+          HUG 가입 신청
+        </a>
+        <a
+          href="https://www.sgi.co.kr/chc/chc_001700.do"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            flex: 1,
+            display: 'block',
+            padding: '12px',
+            borderRadius: 8,
+            background: C.bg,
+            color: C.primary,
+            fontSize: 13,
+            fontWeight: 600,
+            textAlign: 'center',
+            textDecoration: 'none',
+            border: `1px solid ${C.primary}`,
+          }}
+        >
+          SGI 가입 신청
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -308,7 +517,62 @@ export default function App() {
         );
       })}
 
-      {/* Useful Links */}
+      {/* 전세가율 계산기 */}
+      <DepositCalc />
+
+      {/* 보증보험료 계산기 */}
+      <InsuranceCalc />
+
+      {/* 체크 결과 공유 */}
+      {checked.size > 0 && (
+        <div style={{
+          background: C.bg,
+          margin: '12px 16px',
+          borderRadius: 12,
+          padding: '20px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>체크 결과 공유</div>
+          <button
+            onClick={() => {
+              const uncheckedItems = ALL_ITEMS.filter(i => !checked.has(i.id));
+              const text = [
+                `🏠 전세사기 체크리스트 결과`,
+                `✅ ${checked.size}/${TOTAL} 항목 완료 | 위험도: ${risk.label}`,
+                '',
+                uncheckedItems.length > 0 ? `⚠️ 미완료 항목:` : '🎉 모든 항목 확인 완료!',
+                ...uncheckedItems.map(i => `  - ${i.label}${i.risk === 3 ? ' (필수)' : ''}`),
+                '',
+                '전세 계약 전 꼭 확인하세요 👉 https://jeonse-check.vercel.app',
+              ].join('\n');
+
+              if (navigator.share) {
+                navigator.share({ title: '전세사기 체크리스트', text });
+              } else {
+                navigator.clipboard.writeText(text).then(() => {
+                  alert('클립보드에 복사되었습니다!');
+                });
+              }
+            }}
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: 8,
+              border: 'none',
+              background: C.primary,
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: FONT,
+            }}
+          >
+            체크 결과 공유하기
+          </button>
+        </div>
+      )}
+
+      {/* 바로가기 */}
       <div style={{
         background: C.bg,
         margin: '12px 16px',
@@ -316,19 +580,13 @@ export default function App() {
         overflow: 'hidden',
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       }}>
-        <div style={{
-          padding: '16px 20px',
-          borderBottom: `1px solid ${C.border}`,
-        }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>유용한 링크</span>
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.border}` }}>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>바로가기</span>
         </div>
         {[
-          { label: '인터넷등기소 — 등기부등본 발급', url: 'https://www.iros.go.kr', desc: '온라인으로 등기부등본을 열람·발급할 수 있습니다.' },
-          { label: 'HUG 전세보증보험 가입', url: 'https://www.khug.or.kr', desc: '주택도시보증공사 전세보증금 반환보증 신청' },
-          { label: 'SGI 전세보증보험', url: 'https://www.sgi.co.kr', desc: '서울보증보험 전세금 보장 상품 안내' },
-          { label: '안심전세 앱 (국토교통부)', url: 'https://www.jugong.go.kr', desc: '정부 공식 전세사기 예방 서비스' },
-          { label: '전세사기 피해지원센터', url: 'https://www.hf.go.kr', desc: '한국주택금융공사 피해 상담 및 지원' },
-          { label: '공인중개사 조회', url: 'https://www.nsdi.go.kr/lxportal/nsd/main/portal.do', desc: '국가공간정보포털에서 공인중개사 자격 확인' },
+          { label: '등기부등본 열람', url: 'https://www.iros.go.kr', desc: '인터넷등기소에서 바로 발급' },
+          { label: '공인중개사 조회', url: 'https://www.nsdi.go.kr/lxportal/nsd/main/portal.do', desc: '자격 여부 즉시 확인' },
+          { label: '전세사기 피해 상담', url: 'tel:1644-7788', desc: 'HF 주택금융공사 전화 상담' },
         ].map((link, idx, arr) => (
           <a
             key={link.url}
@@ -340,17 +598,12 @@ export default function App() {
               padding: '14px 20px',
               textDecoration: 'none',
               borderBottom: idx < arr.length - 1 ? `1px solid ${C.border}` : 'none',
-              WebkitTapHighlightColor: 'transparent',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: C.primary, marginBottom: 2 }}>
-                  {link.label}
-                </div>
-                <div style={{ fontSize: 12, color: C.gray }}>
-                  {link.desc}
-                </div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.primary, marginBottom: 2 }}>{link.label}</div>
+                <div style={{ fontSize: 12, color: C.gray }}>{link.desc}</div>
               </div>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginLeft: 12 }}>
                 <path d="M6 4L10 8L6 12" stroke={C.gray} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
