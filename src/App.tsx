@@ -308,6 +308,58 @@ export default function App() {
         );
       })}
 
+      {/* Useful Links */}
+      <div style={{
+        background: C.bg,
+        margin: '12px 16px',
+        borderRadius: 12,
+        overflow: 'hidden',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      }}>
+        <div style={{
+          padding: '16px 20px',
+          borderBottom: `1px solid ${C.border}`,
+        }}>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>유용한 링크</span>
+        </div>
+        {[
+          { label: '인터넷등기소 — 등기부등본 발급', url: 'https://www.iros.go.kr', desc: '온라인으로 등기부등본을 열람·발급할 수 있습니다.' },
+          { label: 'HUG 전세보증보험 가입', url: 'https://www.khug.or.kr', desc: '주택도시보증공사 전세보증금 반환보증 신청' },
+          { label: 'SGI 전세보증보험', url: 'https://www.sgi.co.kr', desc: '서울보증보험 전세금 보장 상품 안내' },
+          { label: '안심전세 앱 (국토교통부)', url: 'https://www.jugong.go.kr', desc: '정부 공식 전세사기 예방 서비스' },
+          { label: '전세사기 피해지원센터', url: 'https://www.hf.go.kr', desc: '한국주택금융공사 피해 상담 및 지원' },
+          { label: '공인중개사 조회', url: 'https://www.nsdi.go.kr/lxportal/nsd/main/portal.do', desc: '국가공간정보포털에서 공인중개사 자격 확인' },
+        ].map((link, idx, arr) => (
+          <a
+            key={link.url}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'block',
+              padding: '14px 20px',
+              textDecoration: 'none',
+              borderBottom: idx < arr.length - 1 ? `1px solid ${C.border}` : 'none',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.primary, marginBottom: 2 }}>
+                  {link.label}
+                </div>
+                <div style={{ fontSize: 12, color: C.gray }}>
+                  {link.desc}
+                </div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginLeft: 12 }}>
+                <path d="M6 4L10 8L6 12" stroke={C.gray} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </a>
+        ))}
+      </div>
+
       {/* Reset button */}
       {checked.size > 0 && (
         <div style={{ padding: '12px 16px' }}>
